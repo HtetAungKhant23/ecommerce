@@ -35,6 +35,7 @@ model EndUser {
   order           Order[]
   shippingAddress ShippingAddress[]
   payment         Payment[]
+  CartItem        CartItem[]
 
   @@map("end_users")
 }
@@ -53,7 +54,6 @@ model Product {
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt() @map("updated_at")
-  orderDetail    OrderDetail[]
   productVarient ProductVarient[]
 
   @@map("products")
@@ -71,13 +71,18 @@ model ProductVarient {
   attributeOption3Id String?         @map("attribute_option3_id")
   attribute3         AttributeValue? @relation(name: "option3", fields: [attributeOption3Id], references: [id])
 
-  stock     Int     @default(0)
-  price     Int
-  image     String
-  isDeleted Boolean @default(false) @map("is_deleted")
+  sku             String
+  isTrackingStock Boolean @map("is_tracking_stock")
+  totalStock      Int     @default(0) @map("total_stock")
+  allocatedStock  Int?    @map("allocated_stock")
+  price           Int
+  image           String
+  isDeleted       Boolean @default(false) @map("is_deleted")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt() @map("updated_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt() @map("updated_at")
+  orderDetail OrderDetail[]
+  cartItem    CartItem[]
 
   @@map("product_varients")
 }
@@ -131,6 +136,17 @@ model Discount {
   @@map("discounts")
 }
 
+model CartItem {
+  id               String         @id @default(uuid())
+  productVarientId String         @map("product_varient_id")
+  productVarient   ProductVarient @relation(fields: [productVarientId], references: [id])
+  quantity         Int
+  endUserId        String         @map("end_user_id")
+  endUser          EndUser        @relation(fields: [endUserId], references: [id])
+
+  @@map("cart_items")
+}
+
 model Order {
   id                String           @id @default(uuid())
   orderNo           String           @map("order_no")
@@ -154,14 +170,14 @@ model Order {
 }
 
 model OrderDetail {
-  id        String  @id @default(uuid())
-  orderId   String  @map("order_id")
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String  @map("product_id")
-  product   Product @relation(fields: [productId], references: [id])
-  price     Int
-  quantity  Int
-  isDeleted Boolean @default(false) @map("is_deleted")
+  id               String         @id @default(uuid())
+  orderId          String         @map("order_id")
+  order            Order          @relation(fields: [orderId], references: [id])
+  productVarientId String         @map("product_varient_id")
+  productVarient   ProductVarient @relation(fields: [productVarientId], references: [id])
+  price            Int
+  quantity         Int
+  isDeleted        Boolean        @default(false) @map("is_deleted")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt() @map("updated_at")
