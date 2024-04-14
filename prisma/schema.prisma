@@ -7,63 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Business {
-  id        String  @id @default(uuid())
-  name      String  @unique()
-  isDeleted Boolean @default(false) @map("is_deleted")
-
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @updatedAt() @map("updated_at")
-  businessUser BusinessUser[]
-  customer     Customer[]
-  product      Product[]
-  attribute    Attribute[]
-  category     Category[]
-
-  @@map("business")
-}
-
-model BusinessUser {
-  id         String   @id @default(uuid())
-  businessId String   @map("business_id")
-  business   Business @relation(fields: [businessId], references: [id])
-  userId     String   @map("user_id")
-  user       User     @relation(fields: [id], references: [id])
-  code       String   @unique()
-
-  isDeleted Boolean @default(false) @map("is_deleted")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt() @map("updated_at")
-
-  @@map("business_users")
-}
-
-model User {
+model Admin {
   id        String  @id @default(uuid())
   name      String
   email     String  @unique()
   password  String
   isDeleted Boolean @default(false) @map("is_deleted")
 
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @updatedAt() @map("updated_at")
-  product      Product[]
-  payment      Payment[]
-  businessUser BusinessUser[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt() @map("updated_at")
+  product   Product[]
+  payment   Payment[]
 
-  @@map("users")
+  @@map("admins")
 }
 
-model Customer {
-  id         String   @id @default(uuid())
-  name       String
-  email      String   @unique()
-  password   String
-  image      String?
-  isDeleted  Boolean  @default(false) @map("is_deleted")
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
+model EndUser {
+  id        String  @id @default(uuid())
+  name      String
+  email     String  @unique()
+  password  String
+  image     String?
+  isDeleted Boolean @default(false) @map("is_deleted")
 
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt() @map("updated_at")
@@ -71,7 +36,7 @@ model Customer {
   shippingAddress ShippingAddress[]
   payment         Payment[]
 
-  @@map("customers")
+  @@map("end_users")
 }
 
 model Product {
@@ -81,12 +46,10 @@ model Product {
   brand      String
   categoryId String?   @map("category_id")
   category   Category? @relation(fields: [categoryId], references: [id])
-  businessId String    @map("business_id")
-  business   Business  @relation(fields: [businessId], references: [id])
   isDeleted  Boolean   @default(false) @map("is_deleted")
 
   createdById String @map("created_by_id")
-  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdBy   Admin  @relation(fields: [createdById], references: [id])
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt() @map("updated_at")
@@ -97,17 +60,21 @@ model Product {
 }
 
 model ProductVarient {
-  id          String    @id @default(uuid())
-  name        String
-  productId   String    @map("product_id")
-  product     Product   @relation(fields: [productId], references: [id])
-  attributeId String    @map("attribute_id")
-  attribute   Attribute @relation(fields: [attributeId], references: [id])
-  sku         String
-  stock       Int       @default(0)
-  price       Int
-  image       String
-  isDeleted   Boolean   @default(false) @map("is_deleted")
+  id                 String          @id @default(uuid())
+  name               String
+  productId          String          @map("product_id")
+  product            Product         @relation(fields: [productId], references: [id])
+  attributeOption1Id String?         @map("attribute_option1_id")
+  attribute1         AttributeValue? @relation(name: "option1", fields: [attributeOption1Id], references: [id])
+  attributeOption2Id String?         @map("attribute_option2_id")
+  attribute2         AttributeValue? @relation(name: "option2", fields: [attributeOption2Id], references: [id])
+  attributeOption3Id String?         @map("attribute_option3_id")
+  attribute3         AttributeValue? @relation(name: "option3", fields: [attributeOption3Id], references: [id])
+
+  stock     Int     @default(0)
+  price     Int
+  image     String
+  isDeleted Boolean @default(false) @map("is_deleted")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt() @map("updated_at")
@@ -115,41 +82,31 @@ model ProductVarient {
   @@map("product_varients")
 }
 
-model AttributeName {
-  id          String    @id @default(uuid())
-  attributeId String
-  attribute   Attribute @relation(fields: [attributeId], references: [id])
-  name        String    @unique()
-  isDeleted   Boolean   @default(false) @map("is_deleted")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt() @map("updated_at")
-
-  @@map("attribute_options")
-}
-
 model Attribute {
-  id         String   @id @default(uuid())
-  name       String   @unique()
-  businessId String   @map("business_id")
-  business   Business @relation(fields: [businessId], references: [id])
-  isDeleted  Boolean  @default(false) @map("is_deleted")
-
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt() @map("updated_at")
-  attributeName  AttributeName[]
-  productVarient ProductVarient[]
+  id             String           @id @default(uuid())
+  name           String
+  attributeValue AttributeValue[]
 
   @@map("attributes")
 }
 
+model AttributeValue {
+  id              String           @id @default(uuid())
+  value           String
+  attributeId     String           @map("attribute_id")
+  attribute       Attribute        @relation(fields: [attributeId], references: [id])
+  productVarient1 ProductVarient[] @relation(name: "option1")
+  productVarient2 ProductVarient[] @relation(name: "option2")
+  productVarient3 ProductVarient[] @relation(name: "option3")
+
+  @@map("attribute_values")
+}
+
 model Category {
-  id         String   @id @default(uuid())
-  name       String
-  desc       String?
-  businessId String   @map("business_id")
-  business   Business @relation(fields: [businessId], references: [id])
-  isDeleted  Boolean  @default(false) @map("is_deleted")
+  id        String  @id @default(uuid())
+  name      String
+  desc      String?
+  isDeleted Boolean @default(false) @map("is_deleted")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt() @map("updated_at")
@@ -177,8 +134,8 @@ model Discount {
 model Order {
   id                String           @id @default(uuid())
   orderNo           String           @map("order_no")
-  customerId        String           @map("customer_id")
-  customer          Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  endUserId         String           @map("end_user_id")
+  endUser           EndUser          @relation(fields: [endUserId], references: [id], onDelete: Cascade)
   subTotal          Int              @map("sub_total")
   grandTotal        Int              @map("grand_total")
   discountId        String?          @map("discount_id")
@@ -219,10 +176,10 @@ model Payment {
   status      STATUS
   orderId     String       @map("order_id")
   order       Order        @relation(fields: [orderId], references: [id])
-  customerId  String       @map("customer_id")
-  customer    Customer     @relation(fields: [customerId], references: [id])
+  endUserId   String       @map("end_user_id")
+  endUser     EndUser      @relation(fields: [endUserId], references: [id])
   confirmById String       @map("confirm_by_id")
-  confirmBy   User         @relation(fields: [confirmById], references: [id])
+  confirmBy   Admin        @relation(fields: [confirmById], references: [id])
   isDeleted   Boolean      @default(false) @map("is_deleted")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -232,15 +189,15 @@ model Payment {
 }
 
 model ShippingAddress {
-  id         String    @id @default(uuid())
-  phone      String
-  address    String
-  townShip   String    @map("town_ship")
-  city       String
-  isDefault  Boolean   @map("is_default")
-  customerId String?   @map("customer_id")
-  customer   Customer? @relation(fields: [customerId], references: [id])
-  isDeleted  Boolean   @default(false) @map("is_deleted")
+  id        String   @id @default(uuid())
+  phone     String
+  address   String
+  townShip  String   @map("town_ship")
+  city      String
+  isDefault Boolean  @map("is_default")
+  endUserId String?  @map("end_user_id")
+  endUser   EndUser? @relation(fields: [endUserId], references: [id])
+  isDeleted Boolean  @default(false) @map("is_deleted")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt() @map("updated_at")
