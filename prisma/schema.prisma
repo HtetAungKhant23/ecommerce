@@ -54,12 +54,12 @@ model Product {
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt() @map("updated_at")
-  productVarient ProductVarient[]
+  productVariant ProductVariant[]
 
   @@map("products")
 }
 
-model ProductVarient {
+model ProductVariant {
   id                 String          @id @default(uuid())
   name               String
   productId          String          @map("product_id")
@@ -84,7 +84,7 @@ model ProductVarient {
   orderDetail OrderDetail[]
   cartItem    CartItem[]
 
-  @@map("product_varients")
+  @@map("product_variants")
 }
 
 model Attribute {
@@ -100,9 +100,9 @@ model AttributeValue {
   value           String
   attributeId     String           @map("attribute_id")
   attribute       Attribute        @relation(fields: [attributeId], references: [id])
-  productVarient1 ProductVarient[] @relation(name: "option1")
-  productVarient2 ProductVarient[] @relation(name: "option2")
-  productVarient3 ProductVarient[] @relation(name: "option3")
+  productVariant1 ProductVariant[] @relation(name: "option1")
+  productVariant2 ProductVariant[] @relation(name: "option2")
+  productVariant3 ProductVariant[] @relation(name: "option3")
 
   @@map("attribute_values")
 }
@@ -138,8 +138,8 @@ model Discount {
 
 model CartItem {
   id               String         @id @default(uuid())
-  productVarientId String         @map("product_varient_id")
-  productVarient   ProductVarient @relation(fields: [productVarientId], references: [id])
+  productVariantId String         @map("product_variant_id")
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
   quantity         Int
   endUserId        String         @map("end_user_id")
   endUser          EndUser        @relation(fields: [endUserId], references: [id])
@@ -173,8 +173,8 @@ model OrderDetail {
   id               String         @id @default(uuid())
   orderId          String         @map("order_id")
   order            Order          @relation(fields: [orderId], references: [id])
-  productVarientId String         @map("product_varient_id")
-  productVarient   ProductVarient @relation(fields: [productVarientId], references: [id])
+  productVariantId String         @map("product_variant_id")
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
   price            Int
   quantity         Int
   isDeleted        Boolean        @default(false) @map("is_deleted")
