@@ -1,55 +1,50 @@
-import {
-  BadRequestException,
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import * as argon2 from 'argon2';
+import { JwtService } from '@nestjs/jwt';
+import { BadRequestException } from 'src/core/exceptions/bad-request.exception';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly dbService: PrismaService) {}
+  constructor(
+    private readonly dbService: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async register(payload: RegisterDto) {
-    try {
-      const adminExist = await this.findUserExist(payload.email, 'admin');
-      if (adminExist) {
-        throw new BadRequestException({
-          message: 'Email is already exist.',
-          statusCode: HttpStatus.BAD_REQUEST,
-        });
-      }
-      return await this.createUser(payload, 'admin');
-    } catch (err) {
-      console.log(err);
-      throw new InternalServerErrorException({
-        err: new Error(err),
-        message: 'Internal server error.',
-        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+    const adminExist = await this.findUserExist(payload.email, 'admin');
+    if (adminExist) {
+      throw new BadRequestException({
+        message: 'Email is already exist.',
+        code: HttpStatus.BAD_REQUEST,
       });
     }
+    const admin = await this.createUser(payload, 'admin');
+    delete admin.password;
+    return admin;
   }
 
   async login(payload: LoginDto) {
-    const adminExist = await this.findUserExist(payload.email, 'admin');
-    if (!adminExist) {
+    const admin = await this.findUserExist(payload.email, 'admin');
+    if (!admin) {
       throw new BadRequestException({
         message: 'Admin not found.',
+        code: HttpStatus.BAD_REQUEST,
       });
     }
-    const isPasswordMatch = await this.verify(
-      payload.password,
-      adminExist.password,
-    );
+    const isPasswordMatch = await this.verify(payload.password, admin.password);
     if (!isPasswordMatch) {
       throw new BadRequestException({
         message: 'Password is not match.',
-        statusCode: HttpStatus.BAD_REQUEST,
+        code: HttpStatus.BAD_REQUEST,
       });
     }
-    // use passport-jwt to generate jwt token
+    const token = await this.generateToken(
+      { id: admin.id, email: admin.email },
+      process.env.ADMIN_SECRET_KEY,
+    );
+    return { token };
   }
 
   async findUserExist(email: string, tableName: string) {
@@ -65,7 +60,7 @@ export class AuthService {
     data: { name: string; email: string; password: string },
     tableName: string,
   ) {
-    await this.dbService[`${tableName}`].create({
+    return this.dbService[`${tableName}`].create({
       data: {
         name: data.name,
         email: data.email,
@@ -80,5 +75,15 @@ export class AuthService {
 
   private async verify(data: string, hashedData: string) {
     return argon2.verify(hashedData, data);
+  }
+
+  private async generateToken(
+    payload: { id: string; email: string },
+    key: string,
+  ) {
+    return this.jwtService.signAsync(payload, {
+      secret: key,
+      expiresIn: '2h',
+    });
   }
 }
