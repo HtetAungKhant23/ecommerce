@@ -7,6 +7,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['debug'],
+    cors: true,
   });
 
   app.useGlobalPipes(
