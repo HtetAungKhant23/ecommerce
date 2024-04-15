@@ -3,13 +3,11 @@ import { AppModule } from './app.module';
 import { SwaggerModule } from '@nestjs/swagger';
 import config from './config/swagger.config';
 import { Logger, ValidationPipe } from '@nestjs/common';
-// import * as morgan from 'morgan';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['debug'],
   });
-  // app.use(morgan('dev'));
 
   app.useGlobalPipes(
     new ValidationPipe({

@@ -9,11 +9,11 @@ CREATE TYPE "STATUS" AS ENUM ('PENDING', 'CONFIRMED', 'REJECTED');
 
 -- CreateTable
 CREATE TABLE "admins" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "id" STRING NOT NULL,
+    "name" STRING NOT NULL,
+    "email" STRING NOT NULL,
+    "password" STRING NOT NULL,
+    "is_deleted" BOOL NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -22,12 +22,12 @@ CREATE TABLE "admins" (
 
 -- CreateTable
 CREATE TABLE "end_users" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "image" TEXT,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "id" STRING NOT NULL,
+    "name" STRING NOT NULL,
+    "email" STRING NOT NULL,
+    "password" STRING NOT NULL,
+    "image" STRING,
+    "is_deleted" BOOL NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -36,13 +36,13 @@ CREATE TABLE "end_users" (
 
 -- CreateTable
 CREATE TABLE "products" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "desc" TEXT,
-    "brand" TEXT NOT NULL,
-    "category_id" TEXT,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
-    "created_by_id" TEXT NOT NULL,
+    "id" STRING NOT NULL,
+    "name" STRING NOT NULL,
+    "desc" STRING,
+    "brand" STRING NOT NULL,
+    "category_id" STRING,
+    "is_deleted" BOOL NOT NULL DEFAULT false,
+    "created_by_id" STRING NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -50,46 +50,49 @@ CREATE TABLE "products" (
 );
 
 -- CreateTable
-CREATE TABLE "product_varients" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "product_id" TEXT NOT NULL,
-    "attribute_option1_id" TEXT,
-    "attribute_option2_id" TEXT,
-    "attribute_option3_id" TEXT,
-    "stock" INTEGER NOT NULL DEFAULT 0,
-    "price" INTEGER NOT NULL,
-    "image" TEXT NOT NULL,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+CREATE TABLE "product_variants" (
+    "id" STRING NOT NULL,
+    "name" STRING NOT NULL,
+    "product_id" STRING NOT NULL,
+    "attribute_option1_id" STRING,
+    "attribute_option2_id" STRING,
+    "attribute_option3_id" STRING,
+    "sku" STRING NOT NULL,
+    "is_tracking_stock" BOOL NOT NULL,
+    "total_stock" INT4 NOT NULL DEFAULT 0,
+    "allocated_stock" INT4,
+    "price" INT4 NOT NULL,
+    "image" STRING NOT NULL,
+    "is_deleted" BOOL NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "product_varients_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "product_variants_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "attributes" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "id" STRING NOT NULL,
+    "name" STRING NOT NULL,
 
     CONSTRAINT "attributes_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "attribute_values" (
-    "id" TEXT NOT NULL,
-    "value" TEXT NOT NULL,
-    "attribute_id" TEXT NOT NULL,
+    "id" STRING NOT NULL,
+    "value" STRING NOT NULL,
+    "attribute_id" STRING NOT NULL,
 
     CONSTRAINT "attribute_values_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "categories" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "desc" TEXT,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "id" STRING NOT NULL,
+    "name" STRING NOT NULL,
+    "desc" STRING,
+    "is_deleted" BOOL NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -98,13 +101,13 @@ CREATE TABLE "categories" (
 
 -- CreateTable
 CREATE TABLE "discounts" (
-    "id" TEXT NOT NULL,
-    "code" TEXT NOT NULL,
-    "desc" TEXT NOT NULL,
-    "amount" INTEGER NOT NULL,
+    "id" STRING NOT NULL,
+    "code" STRING NOT NULL,
+    "desc" STRING NOT NULL,
+    "amount" INT4 NOT NULL,
     "type" "DISCOUNT_TYPE" NOT NULL,
-    "is_available" BOOLEAN NOT NULL,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "is_available" BOOL NOT NULL,
+    "is_deleted" BOOL NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -112,16 +115,26 @@ CREATE TABLE "discounts" (
 );
 
 -- CreateTable
+CREATE TABLE "cart_items" (
+    "id" STRING NOT NULL,
+    "product_variant_id" STRING NOT NULL,
+    "quantity" INT4 NOT NULL,
+    "end_user_id" STRING NOT NULL,
+
+    CONSTRAINT "cart_items_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "orders" (
-    "id" TEXT NOT NULL,
-    "order_no" TEXT NOT NULL,
-    "end_user_id" TEXT NOT NULL,
-    "sub_total" INTEGER NOT NULL,
-    "grand_total" INTEGER NOT NULL,
-    "discount_id" TEXT,
-    "shipping_address_id" TEXT,
+    "id" STRING NOT NULL,
+    "order_no" STRING NOT NULL,
+    "end_user_id" STRING NOT NULL,
+    "sub_total" INT4 NOT NULL,
+    "grand_total" INT4 NOT NULL,
+    "discount_id" STRING,
+    "shipping_address_id" STRING,
     "status" "STATUS" NOT NULL,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "is_deleted" BOOL NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -130,12 +143,12 @@ CREATE TABLE "orders" (
 
 -- CreateTable
 CREATE TABLE "order_details" (
-    "id" TEXT NOT NULL,
-    "order_id" TEXT NOT NULL,
-    "product_id" TEXT NOT NULL,
-    "price" INTEGER NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "id" STRING NOT NULL,
+    "order_id" STRING NOT NULL,
+    "product_variant_id" STRING NOT NULL,
+    "price" INT4 NOT NULL,
+    "quantity" INT4 NOT NULL,
+    "is_deleted" BOOL NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -144,14 +157,14 @@ CREATE TABLE "order_details" (
 
 -- CreateTable
 CREATE TABLE "payments" (
-    "id" TEXT NOT NULL,
-    "image" TEXT NOT NULL,
+    "id" STRING NOT NULL,
+    "image" STRING NOT NULL,
     "type" "PAYMENT_TYPE" NOT NULL,
     "status" "STATUS" NOT NULL,
-    "order_id" TEXT NOT NULL,
-    "end_user_id" TEXT NOT NULL,
-    "confirm_by_id" TEXT NOT NULL,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "order_id" STRING NOT NULL,
+    "end_user_id" STRING NOT NULL,
+    "confirm_by_id" STRING NOT NULL,
+    "is_deleted" BOOL NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -160,14 +173,14 @@ CREATE TABLE "payments" (
 
 -- CreateTable
 CREATE TABLE "shipping_address" (
-    "id" TEXT NOT NULL,
-    "phone" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
-    "town_ship" TEXT NOT NULL,
-    "city" TEXT NOT NULL,
-    "is_default" BOOLEAN NOT NULL,
-    "end_user_id" TEXT,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "id" STRING NOT NULL,
+    "phone" STRING NOT NULL,
+    "address" STRING NOT NULL,
+    "town_ship" STRING NOT NULL,
+    "city" STRING NOT NULL,
+    "is_default" BOOL NOT NULL,
+    "end_user_id" STRING,
+    "is_deleted" BOOL NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -190,19 +203,25 @@ ALTER TABLE "products" ADD CONSTRAINT "products_category_id_fkey" FOREIGN KEY ("
 ALTER TABLE "products" ADD CONSTRAINT "products_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "admins"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "product_varients" ADD CONSTRAINT "product_varients_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "product_variants" ADD CONSTRAINT "product_variants_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "product_varients" ADD CONSTRAINT "product_varients_attribute_option1_id_fkey" FOREIGN KEY ("attribute_option1_id") REFERENCES "attribute_values"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "product_variants" ADD CONSTRAINT "product_variants_attribute_option1_id_fkey" FOREIGN KEY ("attribute_option1_id") REFERENCES "attribute_values"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "product_varients" ADD CONSTRAINT "product_varients_attribute_option2_id_fkey" FOREIGN KEY ("attribute_option2_id") REFERENCES "attribute_values"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "product_variants" ADD CONSTRAINT "product_variants_attribute_option2_id_fkey" FOREIGN KEY ("attribute_option2_id") REFERENCES "attribute_values"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "product_varients" ADD CONSTRAINT "product_varients_attribute_option3_id_fkey" FOREIGN KEY ("attribute_option3_id") REFERENCES "attribute_values"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "product_variants" ADD CONSTRAINT "product_variants_attribute_option3_id_fkey" FOREIGN KEY ("attribute_option3_id") REFERENCES "attribute_values"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "attribute_values" ADD CONSTRAINT "attribute_values_attribute_id_fkey" FOREIGN KEY ("attribute_id") REFERENCES "attributes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "cart_items" ADD CONSTRAINT "cart_items_product_variant_id_fkey" FOREIGN KEY ("product_variant_id") REFERENCES "product_variants"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "cart_items" ADD CONSTRAINT "cart_items_end_user_id_fkey" FOREIGN KEY ("end_user_id") REFERENCES "end_users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "orders" ADD CONSTRAINT "orders_end_user_id_fkey" FOREIGN KEY ("end_user_id") REFERENCES "end_users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -217,7 +236,7 @@ ALTER TABLE "orders" ADD CONSTRAINT "orders_shipping_address_id_fkey" FOREIGN KE
 ALTER TABLE "order_details" ADD CONSTRAINT "order_details_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "order_details" ADD CONSTRAINT "order_details_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "order_details" ADD CONSTRAINT "order_details_product_variant_id_fkey" FOREIGN KEY ("product_variant_id") REFERENCES "product_variants"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "payments" ADD CONSTRAINT "payments_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
