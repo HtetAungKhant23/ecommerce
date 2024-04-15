@@ -18,9 +18,9 @@ async function bootstrap() {
     }),
   );
 
-  app.setGlobalPrefix('/api');
+  // app.setGlobalPrefix('/api');
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('', app, document);
   await app.listen(process.env.PORT, () => {
     Logger.log(`Server is running at ${process.env.PORT}.`);
   });
