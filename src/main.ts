@@ -1,8 +1,29 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { SwaggerModule } from '@nestjs/swagger';
+import config from './config/swagger.config';
+import { Logger, ValidationPipe } from '@nestjs/common';
+// import * as morgan from 'morgan';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(3000);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['debug'],
+  });
+  // app.use(morgan('dev'));
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+      forbidNonWhitelisted: true,
+    }),
+  );
+
+  app.setGlobalPrefix('/api');
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document);
+  await app.listen(process.env.PORT, () => {
+    Logger.log(`Server is running at ${process.env.PORT}.`);
+  });
 }
 bootstrap();
