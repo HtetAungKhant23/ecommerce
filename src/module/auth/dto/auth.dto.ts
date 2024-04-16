@@ -8,12 +8,12 @@ import {
 } from 'class-validator';
 
 class BaseAuthDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'admin@gmail.com' })
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'admin12345' })
   @IsNotEmpty()
   @MinLength(8)
   @IsAlphanumeric()
