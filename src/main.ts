@@ -18,7 +18,7 @@ async function bootstrap() {
     }),
   );
 
-  app.setGlobalPrefix('/api');
+  app.setGlobalPrefix(`/api/v${process.env.VERSION}`);
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
   await app.listen(process.env.PORT, () => {
