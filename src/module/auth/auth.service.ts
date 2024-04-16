@@ -1,89 +1,59 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
-import * as argon2 from 'argon2';
-import { JwtService } from '@nestjs/jwt';
 import { BadRequestException } from 'src/core/exceptions/bad-request.exception';
+import { DbHelperService } from '../../shared/helper/DbHelper.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly dbService: PrismaService,
-    private readonly jwtService: JwtService,
+    private readonly DbHelper: DbHelperService,
   ) {}
 
-  async register(payload: RegisterDto) {
-    const adminExist = await this.findUserExist(payload.email, 'admin');
-    if (adminExist) {
-      throw new BadRequestException({
-        message: 'Email is already exist.',
-        code: HttpStatus.BAD_REQUEST,
-      });
-    }
-    const admin = await this.createUser(payload, 'admin');
-    delete admin.password;
-    return admin;
-  }
+  // ? ------------------ Admin ----------------------
 
-  async login(payload: LoginDto) {
-    const admin = await this.findUserExist(payload.email, 'admin');
-    if (!admin) {
-      throw new BadRequestException({
-        message: 'Admin not found.',
-        code: HttpStatus.BAD_REQUEST,
-      });
-    }
-    const isPasswordMatch = await this.verify(payload.password, admin.password);
-    if (!isPasswordMatch) {
-      throw new BadRequestException({
-        message: 'Password is not match.',
-        code: HttpStatus.BAD_REQUEST,
-      });
-    }
-    const token = await this.generateToken(
-      { id: admin.id, email: admin.email },
+  async adminLogin(payload: LoginDto) {
+    const admin = await this.DbHelper.validateUserToLogin({
+      ...payload,
+      target: 'admin',
+    });
+    const token = await this.DbHelper.loginUser(
+      admin.id,
+      admin.email,
       process.env.ADMIN_SECRET_KEY,
     );
     return { token };
   }
 
-  async findUserExist(email: string, tableName: string) {
-    return await this.dbService[`${tableName}`].findUnique({
-      where: {
-        email,
-        isDeleted: false,
-      },
+  // ? -------------- End User --------------------
+
+  async endUserRegister(payload: RegisterDto) {
+    const userExist = await this.DbHelper.findUserExist(
+      payload.email,
+      'endUser',
+    );
+    if (userExist) {
+      throw new BadRequestException({
+        message: 'End user already exist with this email.',
+        code: HttpStatus.BAD_REQUEST,
+      });
+    }
+    const endUser = await this.DbHelper.createUser(payload, 'endUser');
+    delete endUser.password;
+    return endUser;
+  }
+
+  async endUserLogin(payload: LoginDto) {
+    const endUser = await this.DbHelper.validateUserToLogin({
+      ...payload,
+      target: 'endUser',
     });
-  }
-
-  async createUser(
-    data: { name: string; email: string; password: string },
-    tableName: string,
-  ) {
-    return this.dbService[`${tableName}`].create({
-      data: {
-        name: data.name,
-        email: data.email,
-        password: await this.hash(data.password),
-      },
-    });
-  }
-
-  private async hash(data: string) {
-    return argon2.hash(data);
-  }
-
-  private async verify(data: string, hashedData: string) {
-    return argon2.verify(hashedData, data);
-  }
-
-  private async generateToken(
-    payload: { id: string; email: string },
-    key: string,
-  ) {
-    return this.jwtService.signAsync(payload, {
-      secret: key,
-      expiresIn: '2h',
-    });
+    const token = await this.DbHelper.loginUser(
+      endUser.id,
+      endUser.email,
+      process.env.END_USER_SECRET_KEY,
+    );
+    return { token };
   }
 }
