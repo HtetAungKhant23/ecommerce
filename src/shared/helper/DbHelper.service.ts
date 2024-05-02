@@ -75,7 +75,7 @@ export class DbHelperService {
   ) {
     return this.jwtService.signAsync(payload, {
       secret: key,
-      expiresIn: '2h',
+      expiresIn: '1d',
     });
   }
 }
